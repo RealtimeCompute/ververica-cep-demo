@@ -80,7 +80,7 @@ public class CepDemo {
                                 JDBC_URL, JDBC_DRIVE, TABLE_NAME, null, JDBC_INTERVAL_MILLIS),
                         TimeBehaviour.ProcessingTime,
                         TypeInformation.of(new TypeHint<String>() {}));
-
+        // Print output stream in taskmanager's stdout
         output.print();
         // Compile and submit the job
         env.execute("CEPDemo");

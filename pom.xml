@@ -11,7 +11,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.15-vvr-6.0-SNAPSHOT</flink.version>
+        <flink.version>1.15.2</flink.version>
+        <vvr.version>1.15-vvr-6.0-SNAPSHOT</vvr.version>
         <target.java.version>1.8</target.java.version>
         <scala.binary.version>2.11</scala.binary.version>
         <maven.compiler.source>${target.java.version}</maven.compiler.source>
@@ -44,18 +45,8 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-cep</artifactId>
-            <version>${flink.version}</version>
+            <version>${vvr.version}</version>
         </dependency>
-        <!--            <scope>provided</scope>-->
-
-
-<!--        <dependency>-->
-<!--            <groupId>org.apache.flink</groupId>-->
-<!--            <artifactId>flink-cep_2.11</artifactId>-->
-<!--            <version>1.13-vvr-4.0-SNAPSHOT</version>-->
-<!--            &lt;!&ndash;            <scope>provided</scope>&ndash;&gt;-->
-<!--        </dependency>-->
-
 
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>

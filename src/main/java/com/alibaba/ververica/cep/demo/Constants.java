@@ -1,7 +1,7 @@
 package com.alibaba.ververica.cep.demo;
 
 public final class Constants {
-    // Required configurations constants for connecting to JDBC
+    // Required configurations constants for connecting to Database
     public static final String JDBC_URL =
             "jdbc:mysql://${your_jdbc_link}:3306/${your_db_name}?user=${your_db_username}&password=${your_db_password}";
     public static final String JDBC_DRIVE = "com.mysql.cj.jdbc.Driver";
