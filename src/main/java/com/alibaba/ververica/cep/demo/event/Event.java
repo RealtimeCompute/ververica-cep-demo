@@ -2,17 +2,23 @@ package com.alibaba.ververica.cep.demo.event;
 
 import java.util.Objects;
 
-/** Exemplary event for usage in tests of CEP. See also {@link SubEvent} */
+/**
+ * Exemplary event for usage in tests of CEP. See also {@link SubEvent}
+ */
 public class Event {
     private final int id;
     private final String name;
-    private final double amount;
+
+
+    private final int productionId;
+    private final int action;
     private final long eventTime;
 
-    public Event(int id, String name, double price, long timestamp) {
+    public Event(int id, String name, int action, int productionId, long timestamp) {
         this.id = id;
         this.name = name;
-        this.amount = price;
+        this.action = action;
+        this.productionId = productionId;
         this.eventTime = timestamp;
     }
 
@@ -21,20 +27,25 @@ public class Event {
         return new Event(
                 Integer.parseInt(split[0]),
                 split[1],
-                Double.parseDouble(split[2]),
-                Long.parseLong(split[3]));
+                Integer.parseInt(split[2]),
+                Integer.parseInt(split[3]),
+                Long.parseLong(split[4]));
     }
 
     public long getEventTime() {
         return eventTime;
     }
 
-    public double getAmount() {
-        return amount;
+    public double getAction() {
+        return action;
     }
 
     public int getId() {
         return id;
+    }
+
+    public int getProductionId() {
+        return productionId;
     }
 
     public String getName() {
@@ -43,14 +54,14 @@ public class Event {
 
     @Override
     public String toString() {
-        return "Event(" + id + ", " + name + ", " + amount + ", " + eventTime + ")";
+        return "Event(" + id + ", " + name + ", " + action + ", " + productionId + ", " + eventTime + ")";
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Event) {
             Event other = (Event) obj;
-            return name.equals(other.name) && amount == other.amount && id == other.id;
+            return name.equals(other.name) && action == other.action && productionId == other.productionId && id == other.id;
         } else {
             return false;
         }
@@ -58,6 +69,6 @@ public class Event {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, amount, id);
+        return Objects.hash(name, action, productionId, id);
     }
 }

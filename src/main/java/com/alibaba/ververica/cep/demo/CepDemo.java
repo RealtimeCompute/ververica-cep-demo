@@ -4,6 +4,7 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.TimeBehaviour;
 import org.apache.flink.cep.dynamic.impl.json.util.CepJsonUtils;
@@ -23,6 +24,7 @@ import com.alibaba.ververica.cep.demo.condition.StartCondition;
 import com.alibaba.ververica.cep.demo.dynamic.JDBCPeriodicPatternProcessorDiscovererFactory;
 import com.alibaba.ververica.cep.demo.event.Event;
 import com.alibaba.ververica.cep.demo.event.EventDeSerializationSchema;
+import org.apache.flink.streaming.api.windowing.time.Time;
 
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC;
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC_GROUP;
@@ -61,13 +63,19 @@ public class CepDemo {
 
         env.setParallelism(1);
 
-        KeyedStream<Event, Integer> keyedStream =
-                source.keyBy((KeySelector<Event, Integer>) Event::getId);
+        KeyedStream<Event, Tuple2<Integer, Integer>> keyedStream =
+                source.keyBy(new KeySelector<Event, Tuple2<Integer, Integer>>() {
+
+                    @Override
+                    public Tuple2<Integer, Integer> getKey(Event value) throws Exception {
+                        return Tuple2.of(value.getId(), value.getProductionId());
+                    }
+                });
 
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
-                        .where(new StartCondition("amount > 1"))
-                        .timesOrMore(2)
+                        .where(new StartCondition("action == 0"))
+                        .timesOrMore(3)
                         .followedBy("end")
                         .where(new EndCondition());
         printTestPattern(pattern);
@@ -79,7 +87,8 @@ public class CepDemo {
                         new JDBCPeriodicPatternProcessorDiscovererFactory<>(
                                 JDBC_URL, JDBC_DRIVE, TABLE_NAME, null, JDBC_INTERVAL_MILLIS),
                         TimeBehaviour.ProcessingTime,
-                        TypeInformation.of(new TypeHint<String>() {}));
+                        TypeInformation.of(new TypeHint<String>() {
+                        }));
         // Print output stream in taskmanager's stdout
         output.print();
         // Compile and submit the job

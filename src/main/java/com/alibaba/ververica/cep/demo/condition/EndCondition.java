@@ -8,6 +8,6 @@ public class EndCondition extends SimpleCondition<Event> {
 
     @Override
     public boolean filter(Event value) throws Exception {
-        return value.getAmount() < 0;
+        return value.getAction() != 1;
     }
 }
