@@ -49,7 +49,7 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-cep</artifactId>
-            <version>1.15-vvr-6.0-SNAPSHOT-api</version>
+            <version>1.15-vvr-6.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
