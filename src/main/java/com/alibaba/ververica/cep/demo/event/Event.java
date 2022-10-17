@@ -2,13 +2,10 @@ package com.alibaba.ververica.cep.demo.event;
 
 import java.util.Objects;
 
-/**
- * Exemplary event for usage in tests of CEP. See also {@link SubEvent}
- */
+/** Exemplary event for usage in tests of CEP. */
 public class Event {
     private final int id;
     private final String name;
-
 
     private final int productionId;
     private final int action;
@@ -63,14 +60,27 @@ public class Event {
 
     @Override
     public String toString() {
-        return "Event(" + id + ", " + name + ", " + action + ", " + productionId + ", " + eventTime + ")";
+        return "Event("
+                + id
+                + ", "
+                + name
+                + ", "
+                + action
+                + ", "
+                + productionId
+                + ", "
+                + eventTime
+                + ")";
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Event) {
             Event other = (Event) obj;
-            return name.equals(other.name) && action == other.action && productionId == other.productionId && id == other.id;
+            return name.equals(other.name)
+                    && action == other.action
+                    && productionId == other.productionId
+                    && id == other.id;
         } else {
             return false;
         }
