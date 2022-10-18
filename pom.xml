@@ -161,6 +161,12 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.flink.cep</pattern>
+                                    <shadedPattern>org.apache.flink.cep.demo.shaded.org.apache.flink.cep</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

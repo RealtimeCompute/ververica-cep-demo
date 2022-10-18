@@ -1,6 +1,5 @@
 package com.alibaba.ververica.cep.demo;
 
-import com.alibaba.ververica.cep.demo.condition.CustomMiddleCondition;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -21,11 +20,13 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 
+import com.alibaba.ververica.cep.demo.condition.CustomMiddleCondition;
 import com.alibaba.ververica.cep.demo.condition.EndCondition;
-import com.alibaba.ververica.cep.demo.condition.StartCondition;
 import com.alibaba.ververica.cep.demo.dynamic.JDBCPeriodicPatternProcessorDiscovererFactory;
 import com.alibaba.ververica.cep.demo.event.Event;
 import com.alibaba.ververica.cep.demo.event.EventDeSerializationSchema;
+
+import java.lang.reflect.Field;
 
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC_ARG;
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC_GROUP_ARG;
@@ -45,6 +46,13 @@ public class CepDemo {
         if (!params.has(argName)) {
             throw new IllegalArgumentException(argName + " must be set!");
         }
+    }
+
+    public static Object getVariableValue(Event propertyBean, String variableName)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field = propertyBean.getClass().getDeclaredField(variableName);
+        field.setAccessible(true);
+        return field.get(propertyBean);
     }
 
     public static void main(String[] args) throws Exception {
@@ -91,7 +99,9 @@ public class CepDemo {
 
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
-                        .where(new CustomMiddleCondition("eventName == 'car' && eventArgs.detail.price > 10000; noschema", CustomMiddleCondition.class.getCanonicalName()))
+                        .where(
+                                new CustomMiddleCondition(
+                                        "eventArgs.detail.price > 10000"))
                         .followedBy("end")
                         .where(new EndCondition());
         printTestPattern(pattern);

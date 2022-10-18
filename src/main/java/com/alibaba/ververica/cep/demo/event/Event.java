@@ -12,9 +12,8 @@ public class Event {
     private final long eventTime;
     private final String eventArgs;
 
-
-
-    public Event(int id, String name, String eventArgs, int action, int productionId, long timestamp) {
+    public Event(
+            int id, String name, String eventArgs, int action, int productionId, long timestamp) {
         this.id = id;
         this.name = name;
         this.eventArgs = eventArgs;
