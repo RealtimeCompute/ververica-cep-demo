@@ -41,13 +41,6 @@ public class CustomMiddleCondition extends CustomArgCondition<Event> {
         }
     }
 
-    public Object getVariableValue(Event propertyBean, String variableName)
-            throws NoSuchFieldException, IllegalAccessException {
-        Field field = propertyBean.getClass().getDeclaredField(variableName);
-        field.setAccessible(true);
-        return field.get(propertyBean);
-    }
-
     @Override
     public boolean filter(Event event) throws Exception {
         List<String> variableNames = compiledExpression.getVariableNames();
@@ -75,5 +68,12 @@ public class CustomMiddleCondition extends CustomArgCondition<Event> {
         }
 
         return (Boolean) compiledExpression.execute(variables);
+    }
+
+    public Object getVariableValue(Event propertyBean, String variableName)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field = propertyBean.getClass().getDeclaredField(variableName);
+        field.setAccessible(true);
+        return field.get(propertyBean);
     }
 }

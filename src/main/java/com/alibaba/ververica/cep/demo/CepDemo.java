@@ -99,9 +99,7 @@ public class CepDemo {
 
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
-                        .where(
-                                new CustomMiddleCondition(
-                                        "eventArgs.detail.price > 10000"))
+                        .where(new CustomMiddleCondition("eventArgs.detail.price > 10000"))
                         .followedBy("end")
                         .where(new EndCondition());
         printTestPattern(pattern);
