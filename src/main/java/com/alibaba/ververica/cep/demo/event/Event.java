@@ -13,10 +13,14 @@ public class Event {
     private final int productionId;
     private final int action;
     private final long eventTime;
+    private final String eventArgs;
 
-    public Event(int id, String name, int action, int productionId, long timestamp) {
+
+
+    public Event(int id, String name, String eventArgs, int action, int productionId, long timestamp) {
         this.id = id;
         this.name = name;
+        this.eventArgs = eventArgs;
         this.action = action;
         this.productionId = productionId;
         this.eventTime = timestamp;
@@ -27,9 +31,10 @@ public class Event {
         return new Event(
                 Integer.parseInt(split[0]),
                 split[1],
-                Integer.parseInt(split[2]),
+                split[2],
                 Integer.parseInt(split[3]),
-                Long.parseLong(split[4]));
+                Integer.parseInt(split[4]),
+                Long.parseLong(split[5]));
     }
 
     public long getEventTime() {
@@ -50,6 +55,10 @@ public class Event {
 
     public String getName() {
         return name;
+    }
+
+    public String getEventArgs() {
+        return eventArgs;
     }
 
     @Override

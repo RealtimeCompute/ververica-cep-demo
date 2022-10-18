@@ -1,5 +1,6 @@
 package com.alibaba.ververica.cep.demo;
 
+import com.alibaba.ververica.cep.demo.condition.CustomMiddleCondition;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -74,8 +75,7 @@ public class CepDemo {
 
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
-                        .where(new StartCondition("action == 0"))
-                        .timesOrMore(3)
+                        .where(new CustomMiddleCondition("eventName == 'car' && eventArgs.detail.price > 10000; noschema", CustomMiddleCondition.class.getCanonicalName()))
                         .followedBy("end")
                         .where(new EndCondition());
         printTestPattern(pattern);
