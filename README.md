@@ -19,7 +19,7 @@ Demo of Flink CEP with dynamic patterns.
 }
 ```
 表达式如下：
-```json
+```text
 eventName == 'car' && eventArgs.detail.price > 10000
 ```
 
@@ -125,7 +125,7 @@ public class CustomMiddleCondition extends CustomArgCondition<Event> {
         "untilCondition": null
       },
       "condition": {
-        **"args": "eventArgs.detail.price > 10000",**
+        "args": "eventArgs.detail.price > 10000",
         "className": "com.alibaba.ververica.cep.demo.condition.CustomMiddleCondition",
         "type": "CUSTOM_ARGS"
       },
