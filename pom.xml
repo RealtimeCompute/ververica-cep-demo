@@ -50,6 +50,7 @@
             <groupId>com.alibaba.ververica</groupId>
             <artifactId>flink-cep</artifactId>
             <version>${vvr.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 
