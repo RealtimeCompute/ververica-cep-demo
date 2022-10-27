@@ -9,6 +9,9 @@ public class StartCondition extends SimpleCondition<Event> {
     @Override
     public boolean filter(Event event) throws Exception {
 //        System.out.println(event.getAction() == 0);
+        if (event.getListeningTime() >= 40) {
+
+        }
         return event.getAction() == 0;
     }
 }

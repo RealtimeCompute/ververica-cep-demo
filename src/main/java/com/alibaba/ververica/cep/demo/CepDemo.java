@@ -89,12 +89,13 @@ public class CepDemo {
         DataStreamSource<Event> source =
                 env.fromElements(
                         new Event(1, "barfoo", 0, 0, 1),
-                        new Event(1, "barfoo", 1, 30, 1),
+                        new Event(1, "barfoo", 1, 40, 1),
                         new Event(1, "barfoo", 1, 11, 1),
                         new Event(1, "barfoo", 2, 11, 1),
                         new Event(1, "dd", 0, 0, 1),
-                        new Event(1, "dd", 1, 30, 1),
+                        new Event(1, "dd", 1, 20, 1),
                         new Event(1, "dd", 1, 11, 1),
+                        new Event(1, "dd", 1, 9, 1),
                         new Event(1, "dd", 0, 0, 1));
 
         env.setParallelism(1);
@@ -114,9 +115,9 @@ public class CepDemo {
                         .where(new StartCondition())
                         .followedBy("listeningMusic")
                         .where(new MiddleCondition())
-                        .timesOrMore(1)
-                        .followedBy("end")
-                        .where(new EndCondition("listeningMusic", 40))
+                        .timesOrMore(1).or(new EndCondition("listeningMusic", 40))
+//                        .followedBy("end")
+//                        .where(new EndCondition("listeningMusic", 40))
                         .within(Time.days(1));
 //        printTestPattern(pattern);
 
