@@ -1,12 +1,14 @@
 package com.alibaba.ververica.cep.demo.condition;
 
-import org.apache.flink.cep.dynamic.condition.AviatorCondition;
-
 import com.alibaba.ververica.cep.demo.event.Event;
+import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 
-public class StartCondition extends AviatorCondition<Event> {
+public class StartCondition extends SimpleCondition<Event> {
 
-    public StartCondition(String expression) {
-        super(expression);
+
+    @Override
+    public boolean filter(Event event) throws Exception {
+//        System.out.println(event.getAction() == 0);
+        return event.getAction() == 0;
     }
 }

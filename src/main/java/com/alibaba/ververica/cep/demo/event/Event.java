@@ -7,15 +7,15 @@ public class Event {
     private final int id;
     private final String name;
 
-    private final int productionId;
+    private final int listeningTime;
     private final int action;
     private final long eventTime;
 
-    public Event(int id, String name, int action, int productionId, long timestamp) {
+    public Event(int id, String name, int action, int listeningTime, long timestamp) {
         this.id = id;
         this.name = name;
         this.action = action;
-        this.productionId = productionId;
+        this.listeningTime = listeningTime;
         this.eventTime = timestamp;
     }
 
@@ -41,8 +41,8 @@ public class Event {
         return id;
     }
 
-    public int getProductionId() {
-        return productionId;
+    public int getListeningTime() {
+        return listeningTime;
     }
 
     public String getName() {
@@ -58,7 +58,7 @@ public class Event {
                 + ", "
                 + action
                 + ", "
-                + productionId
+                + listeningTime
                 + ", "
                 + eventTime
                 + ")";
@@ -70,7 +70,7 @@ public class Event {
             Event other = (Event) obj;
             return name.equals(other.name)
                     && action == other.action
-                    && productionId == other.productionId
+                    && listeningTime == other.listeningTime
                     && id == other.id;
         } else {
             return false;
@@ -79,6 +79,6 @@ public class Event {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, action, productionId, id);
+        return Objects.hash(name, action, listeningTime, id);
     }
 }
