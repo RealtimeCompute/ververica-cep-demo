@@ -78,6 +78,8 @@ public class CepDemo {
 
         env.setParallelism(1);
 
+        // keyBy userId and productionId
+        // Notes, only events with the same key will be processd to see if there is a match
         KeyedStream<Event, Tuple2<Integer, Integer>> keyedStream =
                 source.keyBy(
                         new KeySelector<Event, Tuple2<Integer, Integer>>() {
@@ -88,6 +90,7 @@ public class CepDemo {
                             }
                         });
 
+        // show how to print test pattern in json format
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
                         .where(new StartCondition("action == 0"))
