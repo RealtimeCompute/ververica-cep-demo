@@ -113,8 +113,13 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
             Map<String, Tuple4<String, Integer, String, String>> currentPatternProcessors =
                     new HashMap<>();
             while (resultSet.next()) {
+                String id = resultSet.getString("id");
+                if (currentPatternProcessors.containsKey(id)
+                        && currentPatternProcessors.get(id).f1 >= resultSet.getInt("version")) {
+                    continue;
+                }
                 currentPatternProcessors.put(
-                        resultSet.getString("id"),
+                        id,
                         new Tuple4<>(
                                 requireNonNull(resultSet.getString("id")),
                                 resultSet.getInt("version"),
