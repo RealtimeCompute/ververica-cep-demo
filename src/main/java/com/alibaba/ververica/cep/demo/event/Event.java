@@ -1,5 +1,6 @@
 package com.alibaba.ververica.cep.demo.event;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 /** Exemplary event for usage in tests of CEP. */
@@ -10,13 +11,19 @@ public class Event {
     private final int productionId;
     private final int action;
     private final long eventTime;
+    private final String eventArgs;
 
-    public Event(int id, String name, int action, int productionId, long timestamp) {
+    public Event(int id, String name, int action, int productionId, long timestamp, @Nullable String eventArgs) {
         this.id = id;
         this.name = name;
         this.action = action;
         this.productionId = productionId;
         this.eventTime = timestamp;
+        this.eventArgs = eventArgs;
+    }
+
+    public Event(int id, String name, int action, int productionId, long timestamp) {
+        this(id, name, action, productionId, timestamp, null);
     }
 
     public static Event fromString(String eventStr) {
@@ -26,7 +33,8 @@ public class Event {
                 split[1],
                 Integer.parseInt(split[2]),
                 Integer.parseInt(split[3]),
-                Long.parseLong(split[4]));
+                Long.parseLong(split[4]),
+                split[5]);
     }
 
     public long getEventTime() {
@@ -47,6 +55,10 @@ public class Event {
 
     public String getName() {
         return name;
+    }
+
+    public String getEventArgs() {
+        return eventArgs;
     }
 
     @Override
