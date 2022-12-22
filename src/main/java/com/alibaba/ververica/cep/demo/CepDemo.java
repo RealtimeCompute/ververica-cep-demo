@@ -20,6 +20,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 
+import com.alibaba.ververica.cep.demo.condition.CustomMiddleCondition;
 import com.alibaba.ververica.cep.demo.condition.EndCondition;
 import com.alibaba.ververica.cep.demo.condition.StartCondition;
 import com.alibaba.ververica.cep.demo.dynamic.JDBCPeriodicPatternProcessorDiscovererFactory;
@@ -94,7 +95,10 @@ public class CepDemo {
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
                         .where(new StartCondition("action == 0"))
-                        .timesOrMore(3)
+                        .followedBy("middle")
+                        .where(
+                                new CustomMiddleCondition(
+                                        new String[] {"eventArgs.detail.price > 10000", "A"}))
                         .followedBy("end")
                         .where(new EndCondition());
         printTestPattern(pattern);
@@ -113,6 +117,7 @@ public class CepDemo {
                         TypeInformation.of(new TypeHint<String>() {}));
         // Print output stream in taskmanager's stdout
         output.print();
+
         // Compile and submit the job
         env.execute("CEPDemo");
     }
