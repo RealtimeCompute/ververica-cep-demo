@@ -32,7 +32,6 @@ import org.apache.flink.util.CollectionUtil;
 import org.apache.flink.util.StringUtils;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.module.SimpleModule;
 
 import org.slf4j.Logger;
@@ -160,18 +159,16 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
                                 String patternStr = patternProcessor.f2;
                                 GraphSpec graphSpec =
                                         objectMapper.readValue(patternStr, GraphSpec.class);
-                                objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-                                System.out.println(
-                                        objectMapper
-                                                .writerWithDefaultPrettyPrinter()
-                                                .writeValueAsString(graphSpec));
+                                long interval = graphSpec.getWindow().getTime().toMilliseconds();
                                 PatternProcessFunction<T, ?> patternProcessFunction = null;
                                 if (!StringUtils.isNullOrWhitespaceOnly(patternProcessor.f3)) {
                                     patternProcessFunction =
                                             (PatternProcessFunction<T, ?>)
                                                     this.userCodeClassLoader
                                                             .loadClass(patternProcessor.f3)
-                                                            .newInstance();
+                                                            .getConstructor(Long.class)
+                                                            .newInstance(interval);
+                                    ;
                                 }
                                 LOG.warn(
                                         objectMapper
