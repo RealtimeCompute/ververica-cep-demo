@@ -1,10 +1,14 @@
 package com.alibaba.ververica.cep.demo;
 
+import org.apache.flink.api.common.eventtime.Watermark;
+import org.apache.flink.api.common.eventtime.WatermarkGenerator;
+import org.apache.flink.api.common.eventtime.WatermarkOutput;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.MultipleParameterTool;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.TimeBehaviour;
@@ -25,6 +29,7 @@ import com.alibaba.ververica.cep.demo.condition.StartCondition;
 import com.alibaba.ververica.cep.demo.dynamic.JDBCPeriodicPatternProcessorDiscovererFactory;
 import com.alibaba.ververica.cep.demo.event.Event;
 import com.alibaba.ververica.cep.demo.event.EventDeSerializationSchema;
+import org.apache.flink.streaming.api.windowing.time.Time;
 
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC_ARG;
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC_GROUP_ARG;
@@ -58,7 +63,7 @@ public class CepDemo {
 
         // Set up the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
+        env.getConfig().setAutoWatermarkInterval(1000);
         // Build Kafka source with new Source API based on FLIP-27
         KafkaSource<Event> kafkaSource =
                 KafkaSource.<Event>builder()
@@ -72,14 +77,30 @@ public class CepDemo {
         DataStreamSource<Event> source =
                 env.fromSource(
                         kafkaSource,
-                        WatermarkStrategy.<Event>forMonotonousTimestamps()
-                                .withTimestampAssigner((event, ts) -> event.getEventTime()),
+                        WatermarkStrategy.<Event>forGenerator(
+                                        ctx ->
+                                                new WatermarkGenerator<Event>() {
+
+                                                    @Override
+                                                    public void onEvent(
+                                                            Event event,
+                                                            long eventTimestamp,
+                                                            WatermarkOutput output) {}
+
+                                                    @Override
+                                                    public void onPeriodicEmit(WatermarkOutput output) {
+                                                        output.emitWatermark(new Watermark(System.currentTimeMillis()));
+                                                    }
+                                                })
+                                .withTimestampAssigner(
+                                        (event, ts ) -> System.currentTimeMillis()
+                                ),
                         "Kafka Source");
 
         env.setParallelism(1);
 
         // keyBy userId and productionId
-        // Notes, only events with the same key will be processd to see if there is a match
+        // Notes, only events with the same key will be processed to see if there is a match
         KeyedStream<Event, Tuple2<Integer, Integer>> keyedStream =
                 source.keyBy(
                         new KeySelector<Event, Tuple2<Integer, Integer>>() {
@@ -93,12 +114,12 @@ public class CepDemo {
         // show how to print test pattern in json format
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
-                        .where(new StartCondition("action == 0"))
-                        .timesOrMore(3)
-                        .followedBy("end")
-                        .where(new EndCondition());
+                        .where(new StartCondition("name == 'first'"))
+                        .times(1)
+                        .notFollowedBy("end")
+                        .where(new StartCondition("name != 'first'"))
+                        .within(Time.seconds(10));
         printTestPattern(pattern);
-
         // Dynamic CEP patterns
         SingleOutputStreamOperator<String> output =
                 CEP.dynamicPatterns(
@@ -109,7 +130,7 @@ public class CepDemo {
                                 params.get(TABLE_NAME_ARG),
                                 null,
                                 Long.parseLong(params.get(JDBC_INTERVAL_MILLIS_ARG))),
-                        TimeBehaviour.ProcessingTime,
+                        TimeBehaviour.EventTime,
                         TypeInformation.of(new TypeHint<String>() {}));
         // Print output stream in taskmanager's stdout
         output.print();
