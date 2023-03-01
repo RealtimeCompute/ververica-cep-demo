@@ -166,12 +166,15 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
                                                 .writerWithDefaultPrettyPrinter()
                                                 .writeValueAsString(graphSpec));
                                 PatternProcessFunction<T, ?> patternProcessFunction = null;
+                                String id =   patternProcessor.f0;
+                                int version = patternProcessor.f1;
+
                                 if (!StringUtils.isNullOrWhitespaceOnly(patternProcessor.f3)) {
                                     patternProcessFunction =
                                             (PatternProcessFunction<T, ?>)
                                                     this.userCodeClassLoader
                                                             .loadClass(patternProcessor.f3)
-                                                            .newInstance();
+                                                            .getConstructor(String.class, int.class).newInstance(id, version);
                                 }
                                 LOG.warn(
                                         objectMapper

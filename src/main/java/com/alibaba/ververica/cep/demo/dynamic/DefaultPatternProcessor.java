@@ -103,6 +103,6 @@ public class DefaultPatternProcessor<T> implements PatternProcessor<T> {
      */
     @Override
     public PatternProcessFunction<T, ?> getPatternProcessFunction() {
-        return new DemoPatternProcessFunction<>();
+        return patternProcessFunction;
     }
 }

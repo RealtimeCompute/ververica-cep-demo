@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flink.version>1.15.0</flink.version>
-        <vvr.version>1.15-vvr-6.0.2-api</vvr.version>
+        <vvr.version>1.15-vvr-6.0.4</vvr.version>
         <target.java.version>1.8</target.java.version>
         <scala.binary.version>2.11</scala.binary.version>
         <maven.compiler.source>${target.java.version}</maven.compiler.source>
