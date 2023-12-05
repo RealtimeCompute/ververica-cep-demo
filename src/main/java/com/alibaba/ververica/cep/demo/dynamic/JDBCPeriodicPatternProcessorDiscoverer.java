@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -65,8 +66,10 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
             LoggerFactory.getLogger(JDBCPeriodicPatternProcessorDiscoverer.class);
 
     private final String tableName;
+    private final String jdbcUrl;
     private final List<PatternProcessor<T>> initialPatternProcessors;
     private final ClassLoader userCodeClassLoader;
+    private Connection connection;
     private Statement statement;
     private ResultSet resultSet;
     private Map<String, Tuple4<String, Integer, String, String>> latestPatternProcessors;
@@ -92,9 +95,10 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
         this.tableName = requireNonNull(tableName);
         this.initialPatternProcessors = initialPatternProcessors;
         this.userCodeClassLoader = userCodeClassLoader;
-
+        this.jdbcUrl = jdbcUrl;
         Class.forName(requireNonNull(jdbcDriver));
-        this.statement = DriverManager.getConnection(requireNonNull(jdbcUrl)).createStatement();
+        this.connection = DriverManager.getConnection(requireNonNull(jdbcUrl));
+        this.statement = this.connection.createStatement();
     }
 
     @Override
@@ -107,7 +111,6 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
         if (statement == null) {
             return false;
         }
-
         try {
             resultSet = statement.executeQuery("SELECT * FROM " + tableName);
             Map<String, Tuple4<String, Integer, String, String>> currentPatternProcessors =
@@ -134,7 +137,17 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
                 return false;
             }
         } catch (SQLException e) {
-            LOG.warn("Pattern processor discoverer checks rule changes - " + e.getMessage());
+            LOG.warn(
+                    "Pattern processor discoverer failed to check rule changes, will recreate connection - "
+                            + e.getMessage());
+            try {
+                statement.close();
+                connection.close();
+                connection = DriverManager.getConnection(requireNonNull(this.jdbcUrl));
+                statement = connection.createStatement();
+            } catch (SQLException ex) {
+                throw new RuntimeException("Cannot recreate connection to database.");
+            }
         }
         return false;
     }
@@ -166,7 +179,7 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
                                                 .writerWithDefaultPrettyPrinter()
                                                 .writeValueAsString(graphSpec));
                                 PatternProcessFunction<T, ?> patternProcessFunction = null;
-                                String id =   patternProcessor.f0;
+                                String id = patternProcessor.f0;
                                 int version = patternProcessor.f1;
 
                                 if (!StringUtils.isNullOrWhitespaceOnly(patternProcessor.f3)) {
@@ -174,7 +187,8 @@ public class JDBCPeriodicPatternProcessorDiscoverer<T>
                                             (PatternProcessFunction<T, ?>)
                                                     this.userCodeClassLoader
                                                             .loadClass(patternProcessor.f3)
-                                                            .getConstructor(String.class, int.class).newInstance(id, version);
+                                                            .getConstructor(String.class, int.class)
+                                                            .newInstance(id, version);
                                 }
                                 LOG.warn(
                                         objectMapper
