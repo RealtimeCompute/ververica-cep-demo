@@ -18,6 +18,11 @@
 
 package com.alibaba.ververica.cep.demo;
 
+import com.alibaba.ververica.cep.demo.event.EventBoundedOutOfOrdernessWatermarks;
+import org.apache.flink.api.common.eventtime.BoundedOutOfOrdernessWatermarks;
+import org.apache.flink.api.common.eventtime.Watermark;
+import org.apache.flink.api.common.eventtime.WatermarkGenerator;
+import org.apache.flink.api.common.eventtime.WatermarkOutput;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -43,6 +48,9 @@ import com.alibaba.ververica.cep.demo.condition.StartCondition;
 import com.alibaba.ververica.cep.demo.dynamic.JDBCPeriodicPatternProcessorDiscovererFactory;
 import com.alibaba.ververica.cep.demo.event.Event;
 import com.alibaba.ververica.cep.demo.event.EventDeSerializationSchema;
+import org.apache.flink.streaming.api.windowing.time.Time;
+
+import java.time.Duration;
 
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC_ARG;
 import static com.alibaba.ververica.cep.demo.Constants.INPUT_TOPIC_GROUP_ARG;
@@ -51,6 +59,7 @@ import static com.alibaba.ververica.cep.demo.Constants.JDBC_INTERVAL_MILLIS_ARG;
 import static com.alibaba.ververica.cep.demo.Constants.JDBC_URL_ARG;
 import static com.alibaba.ververica.cep.demo.Constants.KAFKA_BROKERS_ARG;
 import static com.alibaba.ververica.cep.demo.Constants.TABLE_NAME_ARG;
+import static com.alibaba.ververica.cep.demo.Constants.USING_EVENT_TIME;
 
 public class CepDemo {
 
@@ -73,6 +82,7 @@ public class CepDemo {
         checkArg(JDBC_URL_ARG, params);
         checkArg(TABLE_NAME_ARG, params);
         checkArg(JDBC_INTERVAL_MILLIS_ARG, params);
+        checkArg(USING_EVENT_TIME, params);
 
         // Set up the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -90,16 +100,19 @@ public class CepDemo {
         DataStreamSource<Event> source =
                 env.fromSource(
                         kafkaSource,
-                        WatermarkStrategy.<Event>forMonotonousTimestamps()
+                        WatermarkStrategy.<Event>forBoundedOutOfOrderness(Duration.ofSeconds(5))
                                 .withTimestampAssigner((event, ts) -> event.getEventTime()),
                         "Kafka Source");
-
         env.setParallelism(1);
 
         // keyBy userId and productionId
         // Notes, only events with the same key will be processd to see if there is a match
         KeyedStream<Event, Tuple2<Integer, Integer>> keyedStream =
-                source.keyBy(
+                source.assignTimestampsAndWatermarks(
+                        WatermarkStrategy
+                                .<Event>forGenerator(ctx -> new EventBoundedOutOfOrdernessWatermarks(Duration.ofSeconds(7)) )
+
+                ).keyBy(
                         new KeySelector<Event, Tuple2<Integer, Integer>>() {
 
                             @Override
@@ -112,7 +125,7 @@ public class CepDemo {
         Pattern<Event, Event> pattern =
                 Pattern.<Event>begin("start", AfterMatchSkipStrategy.skipPastLastEvent())
                         .where(new StartCondition("action == 0"))
-                        .timesOrMore(3)
+                        .timesOrMore(3, Time.minutes(10))
                         .followedBy("end")
                         .where(new EndCondition());
         printTestPattern(pattern);
@@ -127,7 +140,7 @@ public class CepDemo {
                                 params.get(TABLE_NAME_ARG),
                                 null,
                                 Long.parseLong(params.get(JDBC_INTERVAL_MILLIS_ARG))),
-                        TimeBehaviour.ProcessingTime,
+                        Boolean.parseBoolean(params.get(USING_EVENT_TIME)) ? TimeBehaviour.EventTime : TimeBehaviour.ProcessingTime,
                         TypeInformation.of(new TypeHint<String>() {}));
         // Print output stream in taskmanager's stdout
         output.print();

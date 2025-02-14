@@ -28,4 +28,5 @@ public final class Constants {
     public static final String KAFKA_BROKERS_ARG = "kafkaBrokers";
     public static final String INPUT_TOPIC_ARG = "inputTopic";
     public static final String INPUT_TOPIC_GROUP_ARG = "inputTopicGroup";
+    public static final String USING_EVENT_TIME = "usingEventTime";
 }

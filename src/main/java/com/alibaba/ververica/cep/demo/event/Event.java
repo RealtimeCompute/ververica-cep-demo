@@ -48,6 +48,7 @@ public class Event {
     }
 
     public long getEventTime() {
+        System.out.println("eventTime: " + eventTime);
         return eventTime;
     }
 
